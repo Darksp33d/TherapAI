@@ -9,7 +9,7 @@ import openai  # Make sure to install this
 audio = pyaudio.PyAudio()
 
 # Set up OpenAI API (make sure to replace with your own API key)
-openai.api_key = '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'
+openai.api_key = 'MYKEY'
 
 # Get list of devices
 def get_device_list():
