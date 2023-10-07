@@ -3,6 +3,7 @@ import pyaudio
 import wave
 import speech_recognition as sr
 import openai
+import os
 
 app = Flask(__name__)
 
@@ -10,7 +11,7 @@ app = Flask(__name__)
 audio = pyaudio.PyAudio()
 
 # Set up OpenAI API
-openai.api_key = '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'
+openai.api_key = os.environ.get('OPENAI_API_KEY')
 
 @app.route('/record_and_process', methods=['POST'])
 def record_and_process():
