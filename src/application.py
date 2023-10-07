@@ -10,7 +10,7 @@ app = Flask(__name__)
 audio = pyaudio.PyAudio()
 
 # Set up OpenAI API
-openai.api_key = 'YOUR_OPENAI_API_KEY'
+openai.api_key = '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'
 
 @app.route('/record_and_process', methods=['POST'])
 def record_and_process():
