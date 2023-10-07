@@ -42,7 +42,6 @@ platformdirs==3.9.1
 playwright==1.36.0
 protobuf==4.23.4
 protobuf3-to-dict==0.1.5
-PyAudio @ file:///C:/Users/durra/pipwin/PyAudio-0.2.11-cp311-cp311-win_amd64.whl#sha256=5092b46bff5d6687db817bde4a71ffc50dd316cc2e490ee81908f0c95ef2644f
 pycparser==2.21
 pydantic==1.10.12
 pydub==0.25.1
