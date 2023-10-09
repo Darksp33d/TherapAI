@@ -14,7 +14,8 @@ db = SQLAlchemy(app)
 
 # Database models
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)  # This remains the same.
+    uuid_hash = db.Column(db.BigInteger, unique=True, nullable=False)
     chat_histories = db.relationship('ChatHistory', backref='user')
 
 class ChatHistory(db.Model):
@@ -28,13 +29,13 @@ openai.api_key = os.environ.get('OPENAI_API_KEY')
 
 @app.route('/process_text', methods=['POST'])
 def process_text():
-    user_id = request.form['user_id']
+    uuid_hash = int(request.form['user_id'])
     user_text = request.form['text']
 
-    user = User.query.get(user_id)
+    user = User.query.filter_by(uuid_hash=uuid_hash).first()
     if not user:
         # Create a new user if it doesn't exist
-        user = User(id=user_id)
+        user = User(uuid_hash=uuid_hash)
         db.session.add(user)
         db.session.commit()
 
