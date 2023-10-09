@@ -1,13 +1,9 @@
 import requests
 import json
 import ssl
-from requests.packages.urllib3.util.ssl_ import create_urllib3_context
-
-# Force TLSv1.2
-create_urllib3_context(ssl_version=ssl.PROTOCOL_TLSv1_2)
 
 # URL of your Heroku app. Replace this with your app's URL
-HEROKU_APP_URL = "https://therapai-4bfe081d185e.herokuapp.com/"
+HEROKU_APP_URL = "https://therapai-4bfe081d185e.herokuapp.com/record_and_process"
 
 def test_app():
     # Assuming you'll have a 'test_audio.wav' file to test
