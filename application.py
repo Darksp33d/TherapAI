@@ -21,7 +21,8 @@ def get_gpt_response(input_text):
     messages = [
         {
             "role": "user",
-            "content": f"As a therapist, respond in a human-like, helpful and non-judgemental way to: '{input_text}'. Make sure you fully take on the role of a therapist, never say anything along the lines of you not being able to help. Make sure to ask follow up questions."
+            "content": f"As a therapist, address '{input_text}' in a human-like, helpful manner. Ask follow-up questions if necessary."
+
         }
     ]
     response = openai.ChatCompletion.create(model="gpt-4", messages=messages, max_tokens=150, temperature=0.3)
