@@ -52,10 +52,25 @@ def process_text():
 
         return jsonify({'response': response_text})
 
-    except exc.SQLAlchemyError as e:   # Catching SQLAlchemy specific exceptions
-        return jsonify({'error': 'Database error: ' + str(e)}), 500
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        print("SQLAlchemy Error:", str(e))  # or use proper logging
+        return jsonify(error="Database error."), 500
+
     except Exception as e:
-        return jsonify({'error': 'An error occurred: ' + str(e)}), 500
+        print("General Error:", str(e))  # or use proper logging
+        return jsonify(error="Something went wrong."), 500
+
+    
+@app.route('/db_test', methods=['GET'])
+def db_test():
+    try:
+        result = db.session.execute('SELECT 1').fetchall()
+        return jsonify(success=True, result=result), 200
+    except Exception as e:
+        print("DB Test Error:", str(e))
+        return jsonify(success=False, error=str(e)), 500
+
 
 def get_gpt_response(user, input_text):
     # Retrieve user's chat history
