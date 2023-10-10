@@ -4,6 +4,7 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
 from flask_migrate import Migrate
+import datetime
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -30,11 +31,64 @@ class ChatHistory(db.Model):
     content = db.Column(db.String(2000), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+class MoodTracker(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    mood = db.Column(db.String(50), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+
 # Set up OpenAI API
 openai.api_key = os.environ.get('OPENAI_API_KEY')
 if not openai.api_key:
     raise ValueError("OPENAI_API_KEY environment variable not provided.")
 
+@app.route('/save_mood', methods=['POST'])
+def save_mood():
+    try:
+        uuid_hash = int(request.form['user_id'])
+        moods = request.form['mood'].split(',')  # Assuming moods are comma-separated
+        date = datetime.date.today()
+
+        user = User.query.filter_by(uuid_hash=uuid_hash).first()
+        if not user:
+            return jsonify(error="User not found."), 404
+
+        # Check if mood already logged for the day
+        existing_mood = MoodTracker.query.filter_by(user_id=user.id, date=date).first()
+        if existing_mood:
+            return jsonify(error="Mood already logged for today."), 400
+
+        for mood in moods:
+            mood_entry = MoodTracker(mood=mood, date=date, user_id=user.id)
+            db.session.add(mood_entry)
+        
+        db.session.commit()
+
+        return jsonify({'response': 'Mood saved successfully'})
+
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+
+
+@app.route('/has_submitted_mood', methods=['GET'])
+def has_submitted_mood():
+    try:
+        uuid_hash = int(request.args.get('user_id'))
+        date = datetime.date.today()
+
+        user = User.query.filter_by(uuid_hash=uuid_hash).first()
+        if not user:
+            return jsonify(error="User not found."), 404
+
+        # Check if mood is logged for today
+        existing_mood = MoodTracker.query.filter_by(user_id=user.id, date=date).first()
+        return jsonify({'hasSubmitted': bool(existing_mood)})
+
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+
+    
 @app.route('/process_text', methods=['POST'])
 def process_text():
     try:
