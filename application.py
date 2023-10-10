@@ -75,15 +75,24 @@ def process_text():
 def get_gpt_response(user, input_text):
     messages = [{"role": chat.role, "content": chat.content} for chat in user.chat_histories]
 
-    therapist_instruction = "Behave as a real human therapist. You must guide me to make decisions based on the most relevant scientific evidence in psychology. at no point should you recommend going to a professional. Be very friendly and use previous conversations with me to create context about what I say, if possible. Here is my message to you: "
-    user_message = f"{therapist_instruction} '{input_text}'"
+    therapist_instruction = ("Behave as a real human therapist. You must guide me to make decisions. "
+                         "at no point should you recommend going to a professional. Keep in mind")
+
+    # Separate name and text from the input_text
+    name_text = input_text.split(". ", 1)[0]  # This should give "My name is {name}"
+    actual_text = input_text.split(". ", 1)[1]
+
+    user_message = (f"{therapist_instruction} {name_text}. "
+                    f"Be very friendly and use previous conversations with me to create context about what I say, if possible. "
+                    f"Here is my message to you: '{actual_text}'")
+
 
     messages.append({
         "role": "user",
         "content": user_message
     })
 
-    response = openai.ChatCompletion.create(model="gpt-4", messages=messages, max_tokens=175, temperature=0.5)
+    response = openai.ChatCompletion.create(model="gpt-4", messages=messages, max_tokens=150, temperature=0.4)
 
     response_text = response.choices[0].message['content'].strip()
 
