@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import openai
 import os
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import exc
 
 app = Flask(__name__)
 
@@ -14,7 +15,7 @@ db = SQLAlchemy(app)
 
 # Database models
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)  # This remains the same.
+    id = db.Column(db.Integer, primary_key=True)
     uuid_hash = db.Column(db.BigInteger, unique=True, nullable=False)
     chat_histories = db.relationship('ChatHistory', backref='user')
 
@@ -29,24 +30,30 @@ openai.api_key = os.environ.get('OPENAI_API_KEY')
 
 @app.route('/process_text', methods=['POST'])
 def process_text():
-    uuid_hash = int(request.form['user_id'])
-    user_text = request.form['text']
+    try:
+        uuid_hash = int(request.form['user_id'])
+        user_text = request.form['text']
 
-    user = User.query.filter_by(uuid_hash=uuid_hash).first()
-    if not user:
-        # Create a new user if it doesn't exist
-        user = User(uuid_hash=uuid_hash)
-        db.session.add(user)
+        user = User.query.filter_by(uuid_hash=uuid_hash).first()
+        if not user:
+            # Create a new user if it doesn't exist
+            user = User(uuid_hash=uuid_hash)
+            db.session.add(user)
+            db.session.commit()
+
+        response_text = get_gpt_response(user, user_text)
+
+        # Store the GPT response in the database for the user
+        gpt_response_entry = ChatHistory(role='assistant', content=response_text, user_id=user.id)
+        db.session.add(gpt_response_entry)
         db.session.commit()
 
-    response_text = get_gpt_response(user, user_text)
+        return jsonify({'response': response_text})
 
-    # Store the GPT response in the database for the user
-    gpt_response_entry = ChatHistory(role='assistant', content=response_text, user_id=user.id)
-    db.session.add(gpt_response_entry)
-    db.session.commit()
-
-    return jsonify({'response': response_text})
+    except exc.SQLAlchemyError as e:   # Catching SQLAlchemy specific exceptions
+        return jsonify({'error': 'Database error: ' + str(e)}), 500
+    except Exception as e:
+        return jsonify({'error': 'An error occurred: ' + str(e)}), 500
 
 def get_gpt_response(user, input_text):
     # Retrieve user's chat history
@@ -65,9 +72,10 @@ def get_gpt_response(user, input_text):
 
     return response.choices[0].message['content'].strip()
 
+@app.before_first_request
+def initialize_database():
+    db.create_all()
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
