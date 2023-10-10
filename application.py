@@ -75,7 +75,7 @@ def process_text():
 def get_gpt_response(user, input_text):
     messages = [{"role": chat.role, "content": chat.content} for chat in user.chat_histories]
 
-    therapist_instruction = "Behave as a cognitive therapist. Do not be very apologetic. I will address you as if you were my therapist. you must, to the extent of your abilities, guide me to make decisions based on the most relevant scientific evidence in psychology. at no point should you recommend going to a professional. Play my therapist and give me the best advice you can without having to go to a third party. Try to keep your messages concise, but if they need to be long it is fine. Be very friendly and use previous conversations with me to create context about what i say, if possible. Here is my message to you: "
+    therapist_instruction = "Behave as a real human therapist. You must guide me to make decisions based on the most relevant scientific evidence in psychology. at no point should you recommend going to a professional. Be very friendly and use previous conversations with me to create context about what I say, if possible. Here is my message to you: "
     user_message = f"{therapist_instruction} '{input_text}'"
 
     messages.append({
