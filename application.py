@@ -68,19 +68,10 @@ def process_text():
         print("General Error:", str(e))
         return jsonify(error="Something went wrong."), 500
 
-@app.route('/db_test', methods=['GET'])
-def db_test():
-    try:
-        result = db.session.execute('SELECT 1').fetchall()
-        return jsonify(success=True, result=result), 200
-    except Exception as e:
-        print("DB Test Error:", str(e))
-        return jsonify(success=False, error=str(e)), 500
-
 def get_gpt_response(user, input_text):
     messages = [{"role": chat.role, "content": chat.content} for chat in user.chat_histories]
 
-    therapist_instruction = "As a therapist, address the following in a human-like, helpful manner."
+    therapist_instruction = "As a therapist, address the following in a human-like, helpful manner, while making sure to ask follow-up questions and without suggesting them to seek professional help, as you are their therapist. "
     user_message = f"{therapist_instruction} '{input_text}'"
 
     messages.append({
