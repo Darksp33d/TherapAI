@@ -76,16 +76,19 @@ def get_gpt_response(user, input_text):
     messages = [{"role": chat.role, "content": chat.content} for chat in user.chat_histories]
 
     therapist_instruction = ("Behave as a real human therapist. You must guide me to make decisions. "
-                         "at no point should you recommend going to a professional. Keep in mind")
+                             "at no point should you recommend going to a professional. Keep in mind")
 
-    # Separate name and text from the input_text
-    name_text = input_text.split(". ", 1)[0]  # This should give "My name is {name}"
-    actual_text = input_text.split(". ", 1)[1]
+    # Check if there's a name in the input_text
+    split_text = input_text.split(". ", 1)
+    if len(split_text) == 2:
+        name_text, actual_text = split_text
+    else:
+        name_text = "My name hasn't been provided"
+        actual_text = split_text[0]
 
     user_message = (f"{therapist_instruction} {name_text}. "
                     f"Be very friendly and use previous conversations with me to create context about what I say, if possible. "
                     f"Here is my message to you: '{actual_text}'")
-
 
     messages.append({
         "role": "user",
