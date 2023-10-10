@@ -5,7 +5,6 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
 from flask_migrate import Migrate
 
-
 app = Flask(__name__)
 app.config['DEBUG'] = True
 
@@ -50,6 +49,11 @@ def process_text():
 
         response_text = get_gpt_response(user, user_text)
 
+        existing_messages = ChatHistory.query.filter_by(user_id=user.id).order_by(ChatHistory.id).all()
+
+        if len(existing_messages) >= 25:
+            db.session.delete(existing_messages[0])
+
         gpt_response_entry = ChatHistory(role='assistant', content=response_text, user_id=user.id)
         db.session.add(gpt_response_entry)
         user_message_entry = ChatHistory(role='user', content=user_text, user_id=user.id)
@@ -79,9 +83,17 @@ def get_gpt_response(user, input_text):
         "content": user_message
     })
 
-    response = openai.ChatCompletion.create(model="gpt-4", messages=messages, max_tokens=250, temperature=0.5)
+    response = openai.ChatCompletion.create(model="gpt-4", messages=messages, max_tokens=175, temperature=0.5)
 
-    return response.choices[0].message['content'].strip()
+    response_text = response.choices[0].message['content'].strip()
+
+    # Check for undesired phrases
+    undesired_phrases = ["I'm really sorry that you're feeling this way", "I'm unable to provide the help"]
+    for phrase in undesired_phrases:
+        if phrase in response_text:
+            response_text = "Let's try discussing this in a different way. Please provide more information or rephrase your concern."
+
+    return response_text
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
