@@ -79,7 +79,7 @@ def get_gpt_response(user, input_text):
         "content": user_message
     })
 
-    response = openai.ChatCompletion.create(model="gpt-4", messages=messages, max_tokens=1000, temperature=0.5)
+    response = openai.ChatCompletion.create(model="gpt-4", messages=messages, max_tokens=250, temperature=0.5)
 
     return response.choices[0].message['content'].strip()
 
