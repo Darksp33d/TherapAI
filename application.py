@@ -52,6 +52,9 @@ def process_text():
 
         gpt_response_entry = ChatHistory(role='assistant', content=response_text, user_id=user.id)
         db.session.add(gpt_response_entry)
+        user_message_entry = ChatHistory(role='user', content=user_text, user_id=user.id)
+        db.session.add(user_message_entry)
+
         db.session.commit()
 
         return jsonify({'response': response_text})
