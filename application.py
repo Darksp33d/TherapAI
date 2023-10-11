@@ -5,6 +5,10 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
 from flask_migrate import Migrate
 import datetime
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -52,6 +56,9 @@ def add_journal_entry():
         user_id = request.form['user_id']
         content = request.form['content']
 
+        # Log request details
+        logging.info(f"Received add journal request. User ID: {user_id}. Content: {content}")
+
         journal_entry = Journal(user_id=user_id, content=content)
         db.session.add(journal_entry)
         db.session.commit()
@@ -60,18 +67,32 @@ def add_journal_entry():
 
     except SQLAlchemyError as e:
         db.session.rollback()
+        logging.error(f"SQLAlchemy Error while adding journal entry: {str(e)}")
         return jsonify(error="Database error."), 500
+
+    except Exception as e:
+        logging.error(f"General Error while adding journal entry: {str(e)}")
+        return jsonify(error="Something went wrong."), 500
 
 @app.route('/get_journal_entries', methods=['GET'])
 def get_journal_entries():
     try:
         user_id = request.args.get('user_id')
+
+        # Log request details
+        logging.info(f"Received get journal entries request. User ID: {user_id}")
+
         entries = Journal.query.filter_by(user_id=user_id).all()
         result = [{"date": entry.date.strftime("%Y-%m-%d"), "content": entry.content} for entry in entries]
         return jsonify(result)
 
     except SQLAlchemyError as e:
+        logging.error(f"SQLAlchemy Error while fetching journal entries: {str(e)}")
         return jsonify(error="Database error."), 500
+
+    except Exception as e:
+        logging.error(f"General Error while fetching journal entries: {str(e)}")
+        return jsonify(error="Something went wrong."), 500
 
 @app.route('/process_text', methods=['POST'])
 def process_text():
