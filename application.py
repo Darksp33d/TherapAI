@@ -70,6 +70,48 @@ def save_mood():
     except Exception as e:
         return jsonify(error=str(e)), 500
 
+@app.route('/fetch_weekly_moods', methods=['GET'])
+def fetch_weekly_moods():
+    try:
+        uuid_hash = int(request.args.get('user_id'))
+        user = User.query.filter_by(uuid_hash=uuid_hash).first()
+        if not user:
+            return jsonify(error="User not found."), 404
+
+        seven_days_ago = datetime.date.today() - datetime.timedelta(days=7)
+        moods = MoodTracker.query.filter(MoodTracker.user_id == user.id, MoodTracker.date > seven_days_ago).all()
+
+        mood_counts = {}
+        for mood in moods:
+            mood_counts[mood.date] = mood_counts.get(mood.date, 0) + 1
+
+        return jsonify(mood_counts)
+
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+
+
+@app.route('/fetch_monthly_moods', methods=['GET'])
+def fetch_monthly_moods():
+    try:
+        uuid_hash = int(request.args.get('user_id'))
+        user = User.query.filter_by(uuid_hash=uuid_hash).first()
+        if not user:
+            return jsonify(error="User not found."), 404
+
+        thirty_days_ago = datetime.date.today() - datetime.timedelta(days=30)
+        moods = MoodTracker.query.filter(MoodTracker.user_id == user.id, MoodTracker.date > thirty_days_ago).all()
+
+        mood_counts = {}
+        for mood in moods:
+            mood_counts[mood.date] = mood_counts.get(mood.date, 0) + 1
+
+        return jsonify(mood_counts)
+
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+
+
 
 @app.route('/has_submitted_mood', methods=['GET'])
 def has_submitted_mood():
