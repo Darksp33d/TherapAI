@@ -31,12 +31,48 @@ class ChatHistory(db.Model):
     content = db.Column(db.String(2000), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+class Journal(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.String(2000), nullable=False)
+    date = db.Column(db.Date, default=datetime.date.today)
+
+class JournalDate(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, unique=True, nullable=False)
 
 # Set up OpenAI API
 openai.api_key = os.environ.get('OPENAI_API_KEY')
 if not openai.api_key:
     raise ValueError("OPENAI_API_KEY environment variable not provided.")
-    
+
+@app.route('/add_journal_entry', methods=['POST'])
+def add_journal_entry():
+    try:
+        user_id = request.form['user_id']
+        content = request.form['content']
+
+        journal_entry = Journal(user_id=user_id, content=content)
+        db.session.add(journal_entry)
+        db.session.commit()
+
+        return jsonify(success=True)
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify(error="Database error."), 500
+
+@app.route('/get_journal_entries', methods=['GET'])
+def get_journal_entries():
+    try:
+        user_id = request.args.get('user_id')
+        entries = Journal.query.filter_by(user_id=user_id).all()
+        result = [{"date": entry.date.strftime("%Y-%m-%d"), "content": entry.content} for entry in entries]
+        return jsonify(result)
+
+    except SQLAlchemyError as e:
+        return jsonify(error="Database error."), 500
+
 @app.route('/process_text', methods=['POST'])
 def process_text():
     try:
