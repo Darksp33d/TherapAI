@@ -37,7 +37,7 @@ class ChatHistory(db.Model):
 
 class Journal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.BigInteger, db.ForeignKey('user.id'), nullable=False)
     content = db.Column(db.String(2000), nullable=False)
     date = db.Column(db.Date, default=datetime.date.today)
 
