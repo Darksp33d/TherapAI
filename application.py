@@ -59,11 +59,19 @@ def add_journal_entry():
         # Log request details
         logging.info(f"Received add journal request. User ID: {user_id}. Content: {content}")
 
-        journal_entry = Journal(user_id=user_id, content=content)
+        user = User.query.filter_by(uuid_hash=user_id).first()
+        if not user:
+            user = User(uuid_hash=user_id)
+            db.session.add(user)
+            db.session.commit()
+
+        journal_entry = Journal(user_id=user.id, content=content)
         db.session.add(journal_entry)
         db.session.commit()
 
         return jsonify(success=True)
+    # ... (rest of the code remains unchanged)
+
 
     except SQLAlchemyError as e:
         db.session.rollback()
@@ -82,7 +90,13 @@ def get_journal_entries():
         # Log request details
         logging.info(f"Received get journal entries request. User ID: {user_id}")
 
-        entries = Journal.query.filter_by(user_id=user_id).all()
+        user = User.query.filter_by(uuid_hash=user_id).first()
+        if not user:
+            user = User(uuid_hash=user_id)
+            db.session.add(user)
+            db.session.commit()
+
+        entries = Journal.query.filter_by(user_id=user.id).all()
         result = [{"date": entry.date.strftime("%Y-%m-%d"), "content": entry.content} for entry in entries]
         return jsonify(result)
 
