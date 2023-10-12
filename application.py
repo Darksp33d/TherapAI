@@ -92,9 +92,8 @@ def get_journal_entries():
 
         user = User.query.filter_by(uuid_hash=user_id).first()
         if not user:
-            user = User(uuid_hash=user_id)
-            db.session.add(user)
-            db.session.commit()
+            # If there's no user with this UUID, there won't be any entries
+            return jsonify([])
 
         entries = Journal.query.filter_by(user_id=user.id).all()
         result = [{"date": entry.date.strftime("%Y-%m-%d"), "content": entry.content} for entry in entries]
