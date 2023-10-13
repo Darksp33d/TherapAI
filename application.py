@@ -70,7 +70,6 @@ def add_journal_entry():
         db.session.commit()
 
         return jsonify(success=True)
-    # ... (rest of the code remains unchanged)
 
 
     except SQLAlchemyError as e:
